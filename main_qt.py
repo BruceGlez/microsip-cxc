@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton,
-    QTableWidget, QTableWidgetItem, QAction, QFileDialog, QMessageBox
+    QTableWidget, QTableWidgetItem, QAction, QFileDialog, QMessageBox, QLabel
 )
 
 from conexion.conexion_firebird import conectar_firebird
@@ -10,6 +10,7 @@ from consultas.consulta_credito import obtener_saldos_credito
 from reportes.resumen_simplificado import generar_resumen_simplificado
 from reportes.resumen_agrupado import generar_resumen_por_cliente_base
 from utils.exportar_excel import exportar_df_excel
+from consultas.tipo_cambio import obtener_tipo_cambio_hoy
 
 
 class MainWindow(QMainWindow):
@@ -42,6 +43,11 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         central_widget.setLayout(self.layout)
 
+        # Etiqueta para mostrar el tipo de cambio
+        self.label_tc = QLabel("Tipo de cambio del día (USD):")
+        self.label_tc.setVisible(False)
+        self.layout.addWidget(self.label_tc)
+
         # Botón de consulta
         self.btn_consultar = QPushButton("Consultar saldos")
         self.btn_consultar.clicked.connect(self.consultar_saldos)
@@ -72,8 +78,37 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Información", "Primero realiza una consulta.")
             return
         try:
+            conn = conectar_firebird()
+            tipo_cambio = obtener_tipo_cambio_hoy(conn)
+            conn.close()
+
+            if tipo_cambio is None:
+                QMessageBox.warning(self, "Advertencia", "No se encontró tipo de cambio del día.")
+                tipo_cambio = 0.0
+
+            # Mostrar el TC en la etiqueta superior
+            self.label_tc.setText(f"Tipo de cambio del día (USD): ${tipo_cambio:,.4f}")
+            self.label_tc.setVisible(True)
+
             self.df_resumen = generar_resumen_simplificado(self.df_resultado)
+
+            # Convertir columnas monetarias a float
+            for col in ["TOTAL_PESOS", "TOTAL_DOLARES"]:
+                if col in self.df_resumen.columns:
+                    self.df_resumen[col] = pd.to_numeric(self.df_resumen[col], errors='coerce').fillna(0.0).astype(
+                        float)
+
+            # Asegurar que el tipo de cambio también sea float
+            tipo_cambio = float(tipo_cambio)
+
+            # Agregar columnas derivadas
+            self.df_resumen["TC_HOY"] = tipo_cambio
+            self.df_resumen["TOTAL_EN_PESOS"] = (
+                    self.df_resumen["TOTAL_PESOS"] + (self.df_resumen["TOTAL_DOLARES"] * tipo_cambio)
+            )
+
             self.mostrar_dataframe(self.df_resumen)
+
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 

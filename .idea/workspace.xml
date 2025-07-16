@@ -5,33 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b56354dd-7043-4be8-bc78-687ba9213f92" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/consultas/consulta_credito.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reportes/resumen_agrupado.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/exportar_excel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/consultas/tipo_cambio.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bitacora.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/Analysis-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/EXE-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/PKG-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/PYZ-00.pyz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/PYZ-00.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/base_library.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/main.pkg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/warn-main.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/main/xref-main.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/conexion_firebird.py" beforeDir="false" afterPath="$PROJECT_DIR$/conexion/conexion_firebird.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/main.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/reportes/reporte_credito_clientes_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/reportes/resumen_credito_unificado_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/reportes/resumen_simplificado_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_qt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.spec" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes/reporte_credito_clientes_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes/resumen_credito_unificado_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/reportes/resumen_simplificado_2025-07-16.xlsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resumen_clientes.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resumen_simplificado.py" beforeDir="false" afterPath="$PROJECT_DIR$/reportes/resumen_simplificado.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_qt.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_qt.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
