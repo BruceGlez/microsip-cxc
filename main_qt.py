@@ -11,9 +11,11 @@ from reportes.resumen_simplificado import generar_resumen_simplificado
 from reportes.resumen_agrupado import generar_resumen_por_cliente_base
 from utils.exportar_excel import exportar_df_excel
 from consultas.tipo_cambio import obtener_tipo_cambio_hoy
-
+from updater import verificar_actualizacion
+from singleton import verificar_instancia_unica
 
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Monitoreo de crédito - Microsip")
@@ -167,7 +169,20 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    instancia = verificar_instancia_unica()
+    if not instancia:
+        from PyQt5.QtWidgets import QMessageBox
+
+        QMessageBox.critical(None, "Ya está en ejecución", "La aplicación ya está corriendo.")
+        sys.exit(1)
+
     app = QApplication(sys.argv)
+    verificar_actualizacion()
     window = MainWindow()
     window.show()
-    sys.exit(app.exec_())
+    app.exec_()
+
+    # Libera el lock al cerrar
+    instancia.release()
+
+
