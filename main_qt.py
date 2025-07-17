@@ -177,12 +177,16 @@ if __name__ == "__main__":
         sys.exit(1)
 
     app = QApplication(sys.argv)
-    verificar_actualizacion()
+    instancia = verificar_instancia_unica()
+    if not instancia:
+        QMessageBox.critical(None, "Ya está en ejecución", "La aplicación ya está corriendo.")
+        sys.exit(1)
+
     window = MainWindow()
+    verificar_actualizacion(parent=window)
     window.show()
     app.exec_()
-
-    # Libera el lock al cerrar
     instancia.release()
+
 
 

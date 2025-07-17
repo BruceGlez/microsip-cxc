@@ -8,7 +8,7 @@ from packaging import version
 from PyQt5.QtWidgets import QMessageBox, QProgressDialog, QApplication
 from PyQt5.QtCore import Qt
 
-VERSION_LOCAL = "1.0.0"
+VERSION_LOCAL = "1.1.0"
 VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
 
 def verificar_actualizacion(parent=None):
@@ -28,26 +28,23 @@ def verificar_actualizacion(parent=None):
         print(">>> URL del ejecutable:", url_exe)
 
         if version.parse(nueva_version) > version.parse(VERSION_LOCAL):
-            print(">>> Se detectó nueva versión.")
             reply = QMessageBox.question(parent, "Actualización disponible",
                                          f"Versión {nueva_version} disponible. ¿Deseas actualizar?",
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 temp_dir = tempfile.mkdtemp()
-                archivo_destino = os.path.join(temp_dir, "microsip_credito_actualizado.exe")
+                nuevo_exe = os.path.join(temp_dir, "nuevo.exe")
 
-                # Obtener tamaño total
                 head = requests.head(url_exe)
                 total_size = int(head.headers.get("Content-Length", 0))
 
-                # Barra de progreso
                 progress = QProgressDialog("Descargando actualización...", "Cancelar", 0, total_size, parent)
                 progress.setWindowModality(Qt.WindowModal)
                 progress.setMinimumDuration(0)
                 progress.setValue(0)
 
                 try:
-                    with requests.get(url_exe, stream=True) as r, open(archivo_destino, "wb") as f:
+                    with requests.get(url_exe, stream=True) as r, open(nuevo_exe, "wb") as f:
                         descargado = 0
                         for chunk in r.iter_content(chunk_size=8192):
                             if chunk:
@@ -59,8 +56,21 @@ def verificar_actualizacion(parent=None):
                                     return
 
                     progress.close()
-                    QMessageBox.information(parent, "Actualización lista", "La nueva versión se descargó. Se abrirá ahora.")
-                    subprocess.Popen(archivo_destino)
+                    QMessageBox.information(parent, "Descarga completa", "Se actualizará el programa.")
+
+                    # Script para reemplazar y ejecutar
+                    current_exe = sys.argv[0]
+                    updater_script = os.path.join(temp_dir, "update_and_run.bat")
+
+                    with open(updater_script, "w") as f:
+                        f.write(f"""
+@echo off
+timeout /t 2 >nul
+copy /Y "{nuevo_exe}" "{current_exe}" >nul 
+start "" "{current_exe}"
+""")
+
+                    subprocess.Popen(f'start cmd /c "{updater_script}"', shell=True)
                     sys.exit()
 
                 except Exception as e:
@@ -72,3 +82,4 @@ def verificar_actualizacion(parent=None):
 
     except Exception as e:
         print(">>> Error en la actualización:", e)
+
