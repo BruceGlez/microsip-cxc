@@ -11,6 +11,7 @@ from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
 from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
 from conexion.conexion_firebird import conectar_firebird
+from gui.handlers.resumen_handler import mostrar_detalle_cliente_desde_resumen
 
 
 class MainWindow(QMainWindow):
@@ -31,6 +32,7 @@ class MainWindow(QMainWindow):
         self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
         self.btn_exportar.clicked.connect(lambda: exportar_reporte_handler(self))
         self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
+        self.table.cellDoubleClicked.connect(self.on_doble_click_resumen)
 
     def mostrar_dataframe(self, df):
         """
@@ -62,3 +64,11 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+
+    def on_doble_click_resumen(self, row, column):
+        if not self.df_resumen.empty:
+            try:
+                cliente_base = str(self.df_resumen.iloc[row]["CLIENTE_BASE"])
+                mostrar_detalle_cliente_desde_resumen(self, cliente_base)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"No se pudo obtener el detalle del cliente.\n{str(e)}")

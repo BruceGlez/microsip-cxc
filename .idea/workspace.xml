@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b56354dd-7043-4be8-bc78-687ba9213f92" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/consultas/consulta_fecha_adeudos.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/gui/utils/seleccion_fecha_dialog.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/gui/utils/detalle_cliente_dialog.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/consultas/consulta_credito.py" beforeDir="false" afterPath="$PROJECT_DIR$/consultas/consulta_credito.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/handlers/resumen_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/handlers/resumen_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gui/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gui/ui_elements.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/ui_elements.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +51,7 @@
     "Python.main_qt.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "dev",
+    "git-widget-placeholder": "feature/listar-folios-pendpago",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/bruce/PycharmProjects/MicrosipCxC"
   }
