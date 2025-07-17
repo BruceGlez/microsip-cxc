@@ -1,0 +1,28 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# PyInstaller
+dist/
+build/
+*.spec
+
+# Virtual environments
+.venv/
+env/
+ENV/
+venv/
+
+# PyCharm
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Otros
+*.log
+*.bak
+*.tmp
