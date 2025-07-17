@@ -40,6 +40,7 @@ class MainWindow(QMainWindow):
 
     def mostrar_reporte_adeudos_fecha(self):
         from gui.utils.seleccion_fecha_dialog import DialogoSeleccionFecha
+        from reportes.resumen_simplificado import generar_resumen_simplificado
 
         dialogo = DialogoSeleccionFecha(self)
         if dialogo.exec_() != dialogo.Accepted:
@@ -56,9 +57,46 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Sin resultados", "No se encontraron adeudos en ese rango de fechas.")
                 return
 
-            df = pd.DataFrame(datos, columns=columnas)
-            self.df_resultado = df
-            self.mostrar_dataframe(df)
+            # Paso 1: convertir a DataFrame original
+            df_raw = pd.DataFrame(datos, columns=columnas)
+
+            # Paso 2: aplicar resumen simplificado
+            df_resumen = generar_resumen_simplificado(df_raw)
+
+            # Paso 3: mostrar el resumen
+            self.df_resultado = df_resumen
+            self.mostrar_dataframe(df_resumen)
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+
+        def mostrar_reporte_adeudo_actual(self):
+            from gui.utils.seleccion_fecha_dialog import DialogoSeleccionFecha
+            from consulta_adeudo_actual import obtener_adeudos_actuales
+            from resumen_simplificado import generar_resumen_simplificado
+
+            dialogo = DialogoSeleccionFecha(self)
+            if dialogo.exec_() != dialogo.Accepted:
+                return
+
+            fecha_inicio, fecha_fin = dialogo.obtener_fechas()
+            fecha_corte = fecha_fin  # Solo usamos la fecha final
+
+            try:
+                conn = conectar_firebird()
+                datos, columnas = obtener_adeudos_actuales(conn, fecha_corte)
+                conn.close()
+
+                if not datos:
+                    QMessageBox.information(self, "Sin resultados", "No hay clientes con adeudos a esa fecha.")
+                    return
+
+                df_raw = pd.DataFrame(datos, columns=columns)
+                df_resumen = generar_resumen_simplificado(df_raw)
+
+                self.df_resultado = df_resumen
+                self.mostrar_dataframe(df_resumen)
+
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+
