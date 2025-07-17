@@ -168,25 +168,37 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", error)
 
 
+import time
+from datetime import datetime
+
+def log_actualizacion(msg):
+    with open("actualizacion.log", "a", encoding="utf-8") as f:
+        f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+
 if __name__ == "__main__":
+    # Permite que el nuevo .exe tenga tiempo de iniciar si viene del updater.bat
+    time.sleep(2)
+
     instancia = verificar_instancia_unica()
     if not instancia:
-        from PyQt5.QtWidgets import QMessageBox
-
+        log_actualizacion("Instancia bloqueada. Ya hay una en ejecución.")
         QMessageBox.critical(None, "Ya está en ejecución", "La aplicación ya está corriendo.")
         sys.exit(1)
 
     app = QApplication(sys.argv)
-    instancia = verificar_instancia_unica()
-    if not instancia:
-        QMessageBox.critical(None, "Ya está en ejecución", "La aplicación ya está corriendo.")
-        sys.exit(1)
-
     window = MainWindow()
-    verificar_actualizacion(parent=window)
+
+    try:
+        verificar_actualizacion(parent=window)
+    except Exception as e:
+        log_actualizacion(f"Error al verificar actualización: {e}")
+
     window.show()
     app.exec_()
+
     instancia.release()
+    log_actualizacion("Aplicación cerrada correctamente.")
+
 
 
 

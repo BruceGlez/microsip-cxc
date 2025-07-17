@@ -63,12 +63,13 @@ def verificar_actualizacion(parent=None):
                     updater_script = os.path.join(temp_dir, "update_and_run.bat")
 
                     with open(updater_script, "w") as f:
-                        f.write(f"""
-@echo off
-timeout /t 2 >nul
-copy /Y "{nuevo_exe}" "{current_exe}" >nul 
-start "" "{current_exe}"
-""")
+                        f.write(f"""@echo off
+                    timeout /t 2 >nul
+                    echo Actualizando... >> actualizacion.log
+                    copy /Y "{nuevo_exe}" "{current_exe}" >nul
+                    start "" "{current_exe}"
+                    del "%~f0"
+                    """)
 
                     subprocess.Popen(f'start cmd /c "{updater_script}"', shell=True)
                     sys.exit()
