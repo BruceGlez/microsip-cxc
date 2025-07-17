@@ -1,18 +1,17 @@
-import subprocess
-
 import requests
 import os
 import sys
 import tempfile
+import subprocess
 import shutil
-from PyQt5.QtWidgets import QMessageBox
 from packaging import version
+from PyQt5.QtWidgets import QMessageBox, QProgressDialog, QApplication
+from PyQt5.QtCore import Qt
 
-VERSION_LOCAL = "1.0.0"  # Cambia según la versión de esta compilación
+VERSION_LOCAL = "1.0.0"
 VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
 
-
-def verificar_actualizacion():
+def verificar_actualizacion(parent=None):
     print(">>> Verificando versión remota...")
 
     try:
@@ -30,29 +29,46 @@ def verificar_actualizacion():
 
         if version.parse(nueva_version) > version.parse(VERSION_LOCAL):
             print(">>> Se detectó nueva versión.")
-            reply = QMessageBox.question(None, "Actualización disponible",
+            reply = QMessageBox.question(parent, "Actualización disponible",
                                          f"Versión {nueva_version} disponible. ¿Deseas actualizar?",
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                archivo = "actualizacion.exe"
-                with open(archivo, "wb") as f:
-                    f.write(requests.get(url_exe).content)
-                subprocess.Popen(archivo)
-                sys.exit()
+                temp_dir = tempfile.mkdtemp()
+                archivo_destino = os.path.join(temp_dir, "microsip_credito_actualizado.exe")
+
+                # Obtener tamaño total
+                head = requests.head(url_exe)
+                total_size = int(head.headers.get("Content-Length", 0))
+
+                # Barra de progreso
+                progress = QProgressDialog("Descargando actualización...", "Cancelar", 0, total_size, parent)
+                progress.setWindowModality(Qt.WindowModal)
+                progress.setMinimumDuration(0)
+                progress.setValue(0)
+
+                try:
+                    with requests.get(url_exe, stream=True) as r, open(archivo_destino, "wb") as f:
+                        descargado = 0
+                        for chunk in r.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                                descargado += len(chunk)
+                                progress.setValue(descargado)
+                                QApplication.processEvents()
+                                if progress.wasCanceled():
+                                    return
+
+                    progress.close()
+                    QMessageBox.information(parent, "Actualización lista", "La nueva versión se descargó. Se abrirá ahora.")
+                    subprocess.Popen(archivo_destino)
+                    sys.exit()
+
+                except Exception as e:
+                    progress.close()
+                    QMessageBox.critical(parent, "Error", f"No se pudo descargar la actualización:\n{e}")
+
         else:
             print(">>> Ya tienes la versión más reciente.")
 
     except Exception as e:
         print(">>> Error en la actualización:", e)
-
-def descargar_actualizacion(url, parent=None):
-    temp_path = os.path.join(tempfile.gettempdir(), "microsip_credito_actualizado.exe")
-    try:
-        r = requests.get(url, stream=True)
-        with open(temp_path, "wb") as f:
-            shutil.copyfileobj(r.raw, f)
-        QMessageBox.information(parent, "Actualización lista", "La nueva versión se descargó. Se abrirá ahora.")
-        os.startfile(temp_path)
-        sys.exit()
-    except Exception as e:
-        QMessageBox.critical(parent, "Error", f"No se pudo descargar:\n{e}")
