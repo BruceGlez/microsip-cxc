@@ -1,5 +1,5 @@
 import pandas as pd
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
 
 from gui.ui_elements import construir_ui
 from gui.handlers.consulta_handler import manejar_consulta_saldos
@@ -9,6 +9,8 @@ from gui.handlers.resumen_handler import (
 )
 from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
+from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
+from conexion.conexion_firebird import conectar_firebird
 
 
 class MainWindow(QMainWindow):
@@ -28,9 +30,35 @@ class MainWindow(QMainWindow):
         self.resumen_action.triggered.connect(lambda: generar_resumen_simplificado_handler(self))
         self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
         self.btn_exportar.clicked.connect(lambda: exportar_reporte_handler(self))
+        self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
 
     def mostrar_dataframe(self, df):
         """
         Método auxiliar que delega el renderizado del DataFrame a la tabla.
         """
         mostrar_dataframe_en_tabla(self, df)
+
+    def mostrar_reporte_adeudos_fecha(self):
+        from gui.utils.seleccion_fecha_dialog import DialogoSeleccionFecha
+
+        dialogo = DialogoSeleccionFecha(self)
+        if dialogo.exec_() != dialogo.Accepted:
+            return
+
+        fecha_inicio, fecha_fin = dialogo.obtener_fechas()
+
+        try:
+            conn = conectar_firebird()
+            datos, columnas = obtener_adeudos_por_fecha(conn, fecha_inicio, fecha_fin)
+            conn.close()
+
+            if not datos:
+                QMessageBox.information(self, "Sin resultados", "No se encontraron adeudos en ese rango de fechas.")
+                return
+
+            df = pd.DataFrame(datos, columns=columnas)
+            self.df_resultado = df
+            self.mostrar_dataframe(df)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")

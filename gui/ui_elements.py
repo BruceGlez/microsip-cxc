@@ -17,6 +17,11 @@ def construir_ui(ventana):
     agrupado_action.setObjectName("action_agrupado")
     reportes_menu.addAction(agrupado_action)
 
+    #Agregar Adeudos por Fecha
+    adeudos_fecha_action = QAction("Adeudos por Fecha", ventana)
+    adeudos_fecha_action.setObjectName("action_adeudos_fecha")
+    reportes_menu.addAction(adeudos_fecha_action)
+
     # Área central
     central_widget = QWidget()
     ventana.setCentralWidget(central_widget)
@@ -66,6 +71,7 @@ def construir_ui(ventana):
     ventana.btn_exportar = btn_exportar
     ventana.resumen_action = resumen_action
     ventana.agrupado_action = agrupado_action
+    ventana.adeudos_fecha_action = adeudos_fecha_action
 
     # Estilo general
     ventana.setStyleSheet("""
