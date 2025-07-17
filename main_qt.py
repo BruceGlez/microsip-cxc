@@ -196,6 +196,7 @@ if __name__ == "__main__":
 
     # Mostrar mensaje si fue recién actualizado
     if os.path.exists("actualizado.txt"):
+        log_actualizacion("Se detecto actualizado.txt")
         from updater import VERSION_LOCAL  # importar la versión local
 
         QMessageBox.information(None, "Actualización completada",

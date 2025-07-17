@@ -42,6 +42,9 @@ def verificar_actualizacion(parent=None):
                 progress.setWindowModality(Qt.WindowModal)
                 progress.setMinimumDuration(0)
                 progress.setValue(0)
+                progress.show()
+
+                QApplication.processEvents()
 
                 try:
                     with requests.get(url_exe, stream=True) as r, open(nuevo_exe, "wb") as f:
