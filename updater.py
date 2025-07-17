@@ -5,7 +5,7 @@ import tempfile
 import shutil
 from PyQt5.QtWidgets import QMessageBox
 
-VERSION_LOCAL = "1.0.0"  # Cambia según la versión de esta compilación
+VERSION_LOCAL = "1.1.0"  # Cambia según la versión de esta compilación
 VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
 
 
