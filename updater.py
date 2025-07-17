@@ -67,6 +67,7 @@ def verificar_actualizacion(parent=None):
                     timeout /t 2 >nul
                     echo Actualizando... >> actualizacion.log
                     copy /Y "{nuevo_exe}" "{current_exe}" >nul
+                    echo ok > actualizado.txt
                     start "" "{current_exe}"
                     del "%~f0"
                     """)

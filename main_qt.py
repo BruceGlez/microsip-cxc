@@ -1,3 +1,4 @@
+import os
 import sys
 import pandas as pd
 from PyQt5.QtWidgets import (
@@ -192,6 +193,17 @@ if __name__ == "__main__":
         verificar_actualizacion(parent=window)
     except Exception as e:
         log_actualizacion(f"Error al verificar actualización: {e}")
+
+    # Mostrar mensaje si fue recién actualizado
+    if os.path.exists("actualizado.txt"):
+        from updater import VERSION_LOCAL  # importar la versión local
+
+        QMessageBox.information(None, "Actualización completada",
+                                f"La aplicación se ha actualizado correctamente a la versión {VERSION_LOCAL}.")
+        try:
+            os.remove("actualizado.txt")
+        except Exception as e:
+            log_actualizacion(f"No se pudo borrar actualizado.txt: {e}")
 
     window.show()
     app.exec_()
