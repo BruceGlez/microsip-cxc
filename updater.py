@@ -8,7 +8,7 @@ from packaging import version
 from PyQt5.QtWidgets import QMessageBox, QProgressDialog, QApplication
 from PyQt5.QtCore import Qt
 
-VERSION_LOCAL = "1.1.0"
+VERSION_LOCAL = "1.2.0"
 VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
 
 def verificar_actualizacion(parent=None):
