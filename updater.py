@@ -6,7 +6,8 @@ import shutil
 from PyQt5.QtWidgets import QMessageBox
 
 VERSION_LOCAL = "1.0.0"  # Cambia según la versión de esta compilación
-VERSION_URL = "https://tu-servidor.com/version.json"  # URL remota del JSON
+VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
+
 
 def verificar_actualizacion(parent=None):
     try:
