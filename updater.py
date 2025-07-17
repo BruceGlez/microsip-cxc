@@ -1,29 +1,49 @@
+import subprocess
+
 import requests
 import os
 import sys
 import tempfile
 import shutil
 from PyQt5.QtWidgets import QMessageBox
+from packaging import version
 
 VERSION_LOCAL = "1.0.0"  # Cambia según la versión de esta compilación
 VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
 
 
-def verificar_actualizacion(parent=None):
+def verificar_actualizacion():
+    print(">>> Verificando versión remota...")
+
     try:
         response = requests.get(VERSION_URL, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            version_remota = data.get("version")
-            url_actualizacion = data.get("url")
-            if version_remota > VERSION_LOCAL:
-                respuesta = QMessageBox.question(parent, "Actualización disponible",
-                    f"Versión {version_remota} disponible. ¿Deseas actualizar ahora?",
-                    QMessageBox.Yes | QMessageBox.No)
-                if respuesta == QMessageBox.Yes:
-                    descargar_actualizacion(url_actualizacion, parent)
+        print(">>> Status:", response.status_code)
+        print(">>> Texto JSON:", response.text)
+
+        data = response.json()
+        nueva_version = data["version"]
+        url_exe = data["url"]
+
+        print(">>> Versión local:", VERSION_LOCAL)
+        print(">>> Versión remota:", nueva_version)
+        print(">>> URL del ejecutable:", url_exe)
+
+        if version.parse(nueva_version) > version.parse(VERSION_LOCAL):
+            print(">>> Se detectó nueva versión.")
+            reply = QMessageBox.question(None, "Actualización disponible",
+                                         f"Versión {nueva_version} disponible. ¿Deseas actualizar?",
+                                         QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                archivo = "actualizacion.exe"
+                with open(archivo, "wb") as f:
+                    f.write(requests.get(url_exe).content)
+                subprocess.Popen(archivo)
+                sys.exit()
+        else:
+            print(">>> Ya tienes la versión más reciente.")
+
     except Exception as e:
-        print(f"[Actualizador] Error al verificar: {e}")
+        print(">>> Error en la actualización:", e)
 
 def descargar_actualizacion(url, parent=None):
     temp_path = os.path.join(tempfile.gettempdir(), "microsip_credito_actualizado.exe")
