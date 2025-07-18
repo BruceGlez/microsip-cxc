@@ -5,13 +5,13 @@ from gui.ui_elements import construir_ui
 from gui.handlers.consulta_handler import manejar_consulta_saldos
 from gui.handlers.resumen_handler import (
     generar_resumen_simplificado_handler,
-    generar_resumen_agrupado_handler
+    generar_resumen_agrupado_handler,
 )
 from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
 from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
 from conexion.conexion_firebird import conectar_firebird
-
+from gui.handlers.resumen_handler import mostrar_detalle_cliente_por_moneda
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -28,9 +28,10 @@ class MainWindow(QMainWindow):
         # Conectar eventos
         self.btn_consultar.clicked.connect(lambda: manejar_consulta_saldos(self))
         self.resumen_action.triggered.connect(lambda: generar_resumen_simplificado_handler(self))
-        self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
+        #self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
         self.btn_exportar.clicked.connect(lambda: exportar_reporte_handler(self))
-        self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
+        #self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
+        self.table.cellDoubleClicked.connect(self.on_doble_click_resumen)
 
     def mostrar_dataframe(self, df):
         """
@@ -62,3 +63,36 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
+
+    def on_doble_click_resumen(self, row, column):
+        if self.df_resumen is None or self.df_resumen.empty:
+            return
+
+        df = self.df_resumen
+        cliente_base = df.iloc[row]["CLIENTE_BASE"]
+        cliente_base = df.iloc[row]["CLIENTE_BASE"]
+        cliente_ids_raw = self._cliente_ids_mapa.get(cliente_base, "{}")
+
+        # Obtener moneda seleccionada
+        if column == df.columns.get_loc("TOTAL_PESOS"):
+            moneda_id = 1
+        elif column == df.columns.get_loc("TOTAL_DOLARES"):
+            moneda_id = 620
+        else:
+            return
+
+        # Parsear CLIENTE_ID correcto según la moneda
+        import json
+        try:
+            cliente_ids_dict = json.loads(cliente_ids_raw)
+            cliente_id = cliente_ids_dict.get(str(moneda_id))
+        except Exception:
+            QMessageBox.warning(self, "Error", "CLIENTE_IDS mal formateado.")
+            return
+
+        if not cliente_id:
+            QMessageBox.warning(self, "No encontrado",
+                                f"No se encontró CLIENTE_ID para {cliente_base} y moneda {moneda_id}.")
+            return
+
+        mostrar_detalle_cliente_por_moneda(self, cliente_base, int(cliente_id), moneda_id)
