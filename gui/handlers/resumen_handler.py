@@ -13,6 +13,7 @@ def generar_resumen_simplificado_handler(ventana):
     if ventana.df_resultado.empty:
         QMessageBox.information(ventana, "Información", "Primero realiza una consulta.")
         return
+
     try:
         conn = conectar_firebird()
         tipo_cambio = obtener_tipo_cambio_hoy(conn)
@@ -27,6 +28,7 @@ def generar_resumen_simplificado_handler(ventana):
 
         df = generar_resumen_simplificado(ventana.df_resultado)
 
+        # Asegurar tipos numéricos y calcular TOTAL_EN_PESOS
         for col in ["TOTAL_PESOS", "TOTAL_DOLARES"]:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0).astype(float)
@@ -34,6 +36,11 @@ def generar_resumen_simplificado_handler(ventana):
         tipo_cambio = float(tipo_cambio)
         df["TC_HOY"] = tipo_cambio
         df["TOTAL_EN_PESOS"] = df["TOTAL_PESOS"] + (df["TOTAL_DOLARES"] * tipo_cambio)
+
+        # Guardar CLIENTE_IDS internamente y luego ocultarla
+        if "CLIENTE_IDS" in df.columns:
+            ventana._cliente_ids_mapa = df[["CLIENTE_BASE", "CLIENTE_IDS"]].set_index("CLIENTE_BASE").to_dict()["CLIENTE_IDS"]
+            df.drop(columns=["CLIENTE_IDS"], inplace=True)
 
         ventana.df_resumen = df
         ventana.mostrar_dataframe(df)

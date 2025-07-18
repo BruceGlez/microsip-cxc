@@ -70,7 +70,8 @@ class MainWindow(QMainWindow):
 
         df = self.df_resumen
         cliente_base = df.iloc[row]["CLIENTE_BASE"]
-        cliente_ids_raw = df.iloc[row]["CLIENTE_IDS"]
+        cliente_base = df.iloc[row]["CLIENTE_BASE"]
+        cliente_ids_raw = self._cliente_ids_mapa.get(cliente_base, "{}")
 
         # Obtener moneda seleccionada
         if column == df.columns.get_loc("TOTAL_PESOS"):
