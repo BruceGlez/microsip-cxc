@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import json
 
 def generar_resumen_simplificado(df_raw):
     def limpiar_nombre(nombre):
@@ -10,6 +11,11 @@ def generar_resumen_simplificado(df_raw):
 
     df_raw['CLIENTE_BASE'] = df_raw['CLIENTE'].apply(limpiar_nombre)
     df_raw['MONEDA_ID'] = pd.to_numeric(df_raw['MONEDA_ID'], errors='coerce').fillna(0).astype(int)
+    df_raw['CLIENTE_ID'] = pd.to_numeric(df_raw['CLIENTE_ID'], errors='coerce')
+
+    def generar_cliente_ids(g):
+        ids_por_moneda = g.groupby('MONEDA_ID')['CLIENTE_ID'].first().dropna().astype(int).to_dict()
+        return json.dumps(ids_por_moneda)
 
     resumen = (
         df_raw.groupby('CLIENTE_BASE', group_keys=False)
@@ -17,6 +23,7 @@ def generar_resumen_simplificado(df_raw):
             lambda g: pd.Series({
                 'TOTAL_PESOS': g.loc[g['MONEDA_ID'] == 1, ['REMISIONES_PENDIENTES', 'SALDO_CXC']].sum().sum(),
                 'TOTAL_DOLARES': g.loc[g['MONEDA_ID'] == 620, ['REMISIONES_PENDIENTES', 'SALDO_CXC']].sum().sum(),
+                'CLIENTE_IDS': generar_cliente_ids(g)
             }),
             include_groups=False
         )
