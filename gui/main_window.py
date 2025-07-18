@@ -6,7 +6,6 @@ from gui.handlers.consulta_handler import manejar_consulta_saldos
 from gui.handlers.resumen_handler import (
     generar_resumen_simplificado_handler,
     generar_resumen_agrupado_handler,
-    mostrar_detalle_cliente_por_id  # ✅ actualizado
 )
 from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
@@ -69,7 +68,15 @@ class MainWindow(QMainWindow):
         if not self.df_resumen.empty:
             try:
                 cliente_base = str(self.df_resumen.iloc[row]["CLIENTE_BASE"])
-                cliente_id = int(self.df_resumen.iloc[row]["CLIENTE_ID"])
-                mostrar_detalle_cliente_por_id(self, cliente_base, cliente_id)
+                cliente_ids_raw = str(self.df_resumen.iloc[row]["CLIENTE_IDS"])
+                cliente_ids = [int(cid) for cid in cliente_ids_raw.split(",") if cid.strip().isdigit()]
+                if not cliente_ids:
+                    QMessageBox.warning(self, "Sin IDs", "No se encontraron CLIENTE_IDs para este cliente.")
+                    return
+
+                # Si hay más de un ID (por moneda), mostrar todos
+                from gui.handlers.resumen_handler import mostrar_detalle_cliente_multiple_ids
+                mostrar_detalle_cliente_multiple_ids(self, cliente_base, cliente_ids)
+
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"No se pudo obtener el detalle del cliente.\n{str(e)}")

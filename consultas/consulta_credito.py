@@ -48,11 +48,10 @@ def obtener_detalle_cliente(conn, cliente_id):
 
     try:
         # SALDOS_CC
-        cursor.execute("""
-            SELECT * FROM SALDOS_CC WHERE CLIENTE_ID = ?
-        """, (cliente_id,))
+        cursor.execute("SELECT * FROM SALDOS_CC WHERE CLIENTE_ID = ?", (cliente_id,))
         saldos = cursor.fetchall()
         columnas_saldos = [desc[0] for desc in cursor.description]
+        df_saldos = pd.DataFrame(saldos, columns=columnas_saldos)
 
         # REMISIONES PENDIENTES
         cursor.execute("""
@@ -61,11 +60,17 @@ def obtener_detalle_cliente(conn, cliente_id):
         """, (cliente_id,))
         remisiones = cursor.fetchall()
         columnas_rem = [desc[0] for desc in cursor.description]
+        df_remisiones = pd.DataFrame(remisiones, columns=columnas_rem)
 
-        return (
-            pd.DataFrame(saldos, columns=columnas_saldos),
-            pd.DataFrame(remisiones, columns=columnas_rem)
-        )
+        # Asegurar que al menos tengan las columnas necesarias
+        if df_saldos.empty:
+            df_saldos = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "SALDO"])
+
+        if df_remisiones.empty:
+            df_remisiones = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "IMPORTE"])
+
+        return df_saldos, df_remisiones
 
     finally:
         cursor.close()
+
