@@ -1,3 +1,5 @@
+import pandas as pd
+
 def obtener_saldos_credito(conn):
     query = """
     SELECT 
@@ -35,27 +37,35 @@ def obtener_saldos_credito(conn):
     cursor.close()
     return rows, columns
 
+
 def obtener_detalle_cliente(conn, cliente_id):
+    """
+    Devuelve dos DataFrames:
+    - Detalle completo de SALDOS_CC para el cliente_id
+    - Detalle completo de DOCTOS_VE (remisiones pendientes) para el cliente_id
+    """
     cursor = conn.cursor()
 
-    # SALDOS_CC
-    cursor.execute("""
-        SELECT * FROM SALDOS_CC WHERE CLIENTE_ID = ?
-    """, (cliente_id,))
-    saldos = cursor.fetchall()
-    columnas_saldos = [desc[0] for desc in cursor.description]
+    try:
+        # SALDOS_CC
+        cursor.execute("""
+            SELECT * FROM SALDOS_CC WHERE CLIENTE_ID = ?
+        """, (cliente_id,))
+        saldos = cursor.fetchall()
+        columnas_saldos = [desc[0] for desc in cursor.description]
 
-    # REMISIONES PENDIENTES
-    cursor.execute("""
-        SELECT * FROM DOCTOS_VE 
-        WHERE CLIENTE_ID = ? AND TIPO_DOCTO = 'R' AND ESTATUS = 'P'
-    """, (cliente_id,))
-    remisiones = cursor.fetchall()
-    columnas_rem = [desc[0] for desc in cursor.description]
+        # REMISIONES PENDIENTES
+        cursor.execute("""
+            SELECT * FROM DOCTOS_VE 
+            WHERE CLIENTE_ID = ? AND TIPO_DOCTO = 'R' AND ESTATUS = 'P'
+        """, (cliente_id,))
+        remisiones = cursor.fetchall()
+        columnas_rem = [desc[0] for desc in cursor.description]
 
-    cursor.close()
-    return (
-        pd.DataFrame(saldos, columns=columnas_saldos),
-        pd.DataFrame(remisiones, columns=columnas_rem)
-    )
+        return (
+            pd.DataFrame(saldos, columns=columnas_saldos),
+            pd.DataFrame(remisiones, columns=columnas_rem)
+        )
 
+    finally:
+        cursor.close()

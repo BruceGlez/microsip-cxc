@@ -5,13 +5,13 @@ from gui.ui_elements import construir_ui
 from gui.handlers.consulta_handler import manejar_consulta_saldos
 from gui.handlers.resumen_handler import (
     generar_resumen_simplificado_handler,
-    generar_resumen_agrupado_handler
+    generar_resumen_agrupado_handler,
+    mostrar_detalle_cliente_por_id  # ✅ actualizado
 )
 from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
 from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
 from conexion.conexion_firebird import conectar_firebird
-from gui.handlers.resumen_handler import mostrar_detalle_cliente_desde_resumen
 
 
 class MainWindow(QMainWindow):
@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
         if not self.df_resumen.empty:
             try:
                 cliente_base = str(self.df_resumen.iloc[row]["CLIENTE_BASE"])
-                mostrar_detalle_cliente_desde_resumen(self, cliente_base)
+                cliente_id = int(self.df_resumen.iloc[row]["CLIENTE_ID"])
+                mostrar_detalle_cliente_por_id(self, cliente_base, cliente_id)
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"No se pudo obtener el detalle del cliente.\n{str(e)}")
