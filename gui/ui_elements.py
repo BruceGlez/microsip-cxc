@@ -13,14 +13,13 @@ def construir_ui(ventana):
     resumen_action.setObjectName("action_resumen")
     reportes_menu.addAction(resumen_action)
 
-    agrupado_action = QAction("Resumen agrupado", ventana)
-    agrupado_action.setObjectName("action_agrupado")
-    reportes_menu.addAction(agrupado_action)
+    # agrupado_action = QAction("Resumen agrupado", ventana)
+    # agrupado_action.setObjectName("action_agrupado")
+    # reportes_menu.addAction(agrupado_action)
 
-    #Agregar Adeudos por Fecha
-    adeudos_fecha_action = QAction("Adeudos por Fecha", ventana)
-    adeudos_fecha_action.setObjectName("action_adeudos_fecha")
-    reportes_menu.addAction(adeudos_fecha_action)
+    # adeudos_fecha_action = QAction("Adeudos por Fecha", ventana)
+    # adeudos_fecha_action.setObjectName("action_adeudos_fecha")
+    # reportes_menu.addAction(adeudos_fecha_action)
 
     # Área central
     central_widget = QWidget()
@@ -70,8 +69,8 @@ def construir_ui(ventana):
     ventana.table = table
     ventana.btn_exportar = btn_exportar
     ventana.resumen_action = resumen_action
-    ventana.agrupado_action = agrupado_action
-    ventana.adeudos_fecha_action = adeudos_fecha_action
+    #ventana.agrupado_action = agrupado_action
+    #ventana.adeudos_fecha_action = adeudos_fecha_action
 
     # Estilo general
     ventana.setStyleSheet("""

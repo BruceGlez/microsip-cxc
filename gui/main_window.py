@@ -28,9 +28,9 @@ class MainWindow(QMainWindow):
         # Conectar eventos
         self.btn_consultar.clicked.connect(lambda: manejar_consulta_saldos(self))
         self.resumen_action.triggered.connect(lambda: generar_resumen_simplificado_handler(self))
-        self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
+        #self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
         self.btn_exportar.clicked.connect(lambda: exportar_reporte_handler(self))
-        self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
+        #self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
         self.table.cellDoubleClicked.connect(self.on_doble_click_resumen)
 
     def mostrar_dataframe(self, df):
