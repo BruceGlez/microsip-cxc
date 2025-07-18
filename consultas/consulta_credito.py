@@ -39,11 +39,6 @@ def obtener_saldos_credito(conn):
 
 
 def obtener_detalle_cliente(conn, cliente_id):
-    """
-    Devuelve dos DataFrames:
-    - Detalle completo de SALDOS_CC para el cliente_id
-    - Detalle completo de DOCTOS_VE (remisiones pendientes) para el cliente_id
-    """
     cursor = conn.cursor()
 
     try:
@@ -62,7 +57,13 @@ def obtener_detalle_cliente(conn, cliente_id):
         columnas_rem = [desc[0] for desc in cursor.description]
         df_remisiones = pd.DataFrame(remisiones, columns=columnas_rem)
 
-        # Asegurar que al menos tengan las columnas necesarias
+        # Asegurar columnas clave, incluso si faltan o están vacías
+        for col in ["MONEDA_ID", "DOCUMENTO"]:
+            if col not in df_saldos.columns:
+                df_saldos[col] = None
+            if col not in df_remisiones.columns:
+                df_remisiones[col] = None
+
         if df_saldos.empty:
             df_saldos = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "SALDO"])
 

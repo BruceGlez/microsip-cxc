@@ -6,36 +6,24 @@ class DetalleClienteDialog(QDialog):
     def __init__(self, cliente_nombre, df_saldos, df_remisiones):
         super().__init__()
         self.setWindowTitle(f"Detalle del Cliente: {cliente_nombre}")
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(1000, 700)
 
         layout = QVBoxLayout()
 
-        # ✅ Asegurar que la columna MONEDA_ID exista (aunque los DataFrames estén vacíos)
-        if "MONEDA_ID" not in df_saldos.columns:
-            df_saldos["MONEDA_ID"] = None
+        # DEBUG: imprimir ambos DataFrames
+        print(f"🧾 Mostrando ventana para {cliente_nombre}")
+        print("SALDOS_CC:")
+        print(df_saldos)
+        print("REMISIONES:")
+        print(df_remisiones)
 
-        if "MONEDA_ID" not in df_remisiones.columns:
-            df_remisiones["MONEDA_ID"] = None
+        if not df_saldos.empty:
+            layout.addWidget(QLabel("SALDOS_CC"))
+            layout.addWidget(self.crear_tabla(df_saldos))
 
-        # SALDOS_CC - PESOS
-        layout.addWidget(QLabel("SALDOS_CC - PESOS"))
-        df_saldos_pesos = df_saldos[df_saldos["MONEDA_ID"] == 1]
-        layout.addWidget(self.crear_tabla(df_saldos_pesos))
-
-        # SALDOS_CC - DÓLARES
-        layout.addWidget(QLabel("SALDOS_CC - DÓLARES"))
-        df_saldos_dolares = df_saldos[df_saldos["MONEDA_ID"] == 620]
-        layout.addWidget(self.crear_tabla(df_saldos_dolares))
-
-        # REMISIONES - PESOS
-        layout.addWidget(QLabel("REMISIONES PENDIENTES - PESOS"))
-        df_rem_pesos = df_remisiones[df_remisiones["MONEDA_ID"] == 1]
-        layout.addWidget(self.crear_tabla(df_rem_pesos))
-
-        # REMISIONES - DÓLARES
-        layout.addWidget(QLabel("REMISIONES PENDIENTES - DÓLARES"))
-        df_rem_dolares = df_remisiones[df_remisiones["MONEDA_ID"] == 620]
-        layout.addWidget(self.crear_tabla(df_rem_dolares))
+        if not df_remisiones.empty:
+            layout.addWidget(QLabel("REMISIONES PENDIENTES"))
+            layout.addWidget(self.crear_tabla(df_remisiones))
 
         self.setLayout(layout)
 

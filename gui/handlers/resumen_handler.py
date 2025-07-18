@@ -1,3 +1,4 @@
+
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox
 from conexion.conexion_firebird import conectar_firebird
@@ -51,26 +52,24 @@ def generar_resumen_agrupado_handler(ventana):
     except Exception as e:
         QMessageBox.critical(ventana, "Error", str(e))
 
-def mostrar_detalle_cliente_multiple_ids(ventana, cliente_base, cliente_ids):
+def mostrar_detalle_cliente_por_moneda(ventana, cliente_base, cliente_id, moneda_id):
     try:
         conn = conectar_firebird()
-        df_saldos_total = pd.DataFrame()
-        df_remisiones_total = pd.DataFrame()
 
-        for cliente_id in cliente_ids:
-            df_saldos, df_remisiones = obtener_detalle_cliente(conn, cliente_id)
+        # Obtener datos del cliente
+        df_saldos, df_remisiones = obtener_detalle_cliente(conn, cliente_id)
 
-            if not df_saldos.empty:
-                df_saldos_total = pd.concat([df_saldos_total, df_saldos], ignore_index=True)
+        # Como el cliente_id ya representa una moneda específica, no se filtran saldos
+        df_saldos_total = df_saldos.copy()
 
-            if not df_remisiones.empty:
-                df_remisiones_total = pd.concat([df_remisiones_total, df_remisiones], ignore_index=True)
+        # Las remisiones sí se filtran por la moneda
+        df_remisiones["MONEDA_ID"] = pd.to_numeric(df_remisiones["MONEDA_ID"], errors="coerce").fillna(0).astype(int)
+        df_remisiones_total = df_remisiones[df_remisiones["MONEDA_ID"] == moneda_id]
 
         conn.close()
 
         if df_saldos_total.empty:
-            df_saldos_total = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "SALDO"])
-
+            df_saldos_total = pd.DataFrame(columns=["DOCUMENTO", "SALDO"])
         if df_remisiones_total.empty:
             df_remisiones_total = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "IMPORTE"])
 
@@ -79,3 +78,4 @@ def mostrar_detalle_cliente_multiple_ids(ventana, cliente_base, cliente_ids):
 
     except Exception as e:
         QMessageBox.critical(ventana, "Error al obtener detalle", str(e))
+

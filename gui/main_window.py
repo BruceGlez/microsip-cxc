@@ -11,7 +11,7 @@ from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
 from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
 from conexion.conexion_firebird import conectar_firebird
-
+from gui.handlers.resumen_handler import mostrar_detalle_cliente_por_moneda
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -65,18 +65,33 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Ocurrió un error:\n{str(e)}")
 
     def on_doble_click_resumen(self, row, column):
-        if not self.df_resumen.empty:
-            try:
-                cliente_base = str(self.df_resumen.iloc[row]["CLIENTE_BASE"])
-                cliente_ids_raw = str(self.df_resumen.iloc[row]["CLIENTE_IDS"])
-                cliente_ids = [int(cid) for cid in cliente_ids_raw.split(",") if cid.strip().isdigit()]
-                if not cliente_ids:
-                    QMessageBox.warning(self, "Sin IDs", "No se encontraron CLIENTE_IDs para este cliente.")
-                    return
+        if self.df_resumen is None or self.df_resumen.empty:
+            return
 
-                # Si hay más de un ID (por moneda), mostrar todos
-                from gui.handlers.resumen_handler import mostrar_detalle_cliente_multiple_ids
-                mostrar_detalle_cliente_multiple_ids(self, cliente_base, cliente_ids)
+        df = self.df_resumen
+        cliente_base = df.iloc[row]["CLIENTE_BASE"]
+        cliente_ids_raw = df.iloc[row]["CLIENTE_IDS"]
 
-            except Exception as e:
-                QMessageBox.warning(self, "Error", f"No se pudo obtener el detalle del cliente.\n{str(e)}")
+        # Obtener moneda seleccionada
+        if column == df.columns.get_loc("TOTAL_PESOS"):
+            moneda_id = 1
+        elif column == df.columns.get_loc("TOTAL_DOLARES"):
+            moneda_id = 620
+        else:
+            return
+
+        # Parsear CLIENTE_ID correcto según la moneda
+        import json
+        try:
+            cliente_ids_dict = json.loads(cliente_ids_raw)
+            cliente_id = cliente_ids_dict.get(str(moneda_id))
+        except Exception:
+            QMessageBox.warning(self, "Error", "CLIENTE_IDS mal formateado.")
+            return
+
+        if not cliente_id:
+            QMessageBox.warning(self, "No encontrado",
+                                f"No se encontró CLIENTE_ID para {cliente_base} y moneda {moneda_id}.")
+            return
+
+        mostrar_detalle_cliente_por_moneda(self, cliente_base, int(cliente_id), moneda_id)
