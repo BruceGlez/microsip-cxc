@@ -1,3 +1,5 @@
+import pandas as pd
+
 def obtener_saldos_credito(conn):
     query = """
     SELECT 
@@ -34,3 +36,42 @@ def obtener_saldos_credito(conn):
     columns = [desc[0] for desc in cursor.description]
     cursor.close()
     return rows, columns
+
+
+def obtener_detalle_cliente(conn, cliente_id):
+    cursor = conn.cursor()
+
+    try:
+        # SALDOS_CC
+        cursor.execute("SELECT * FROM SALDOS_CC WHERE CLIENTE_ID = ?", (cliente_id,))
+        saldos = cursor.fetchall()
+        columnas_saldos = [desc[0] for desc in cursor.description]
+        df_saldos = pd.DataFrame(saldos, columns=columnas_saldos)
+
+        # REMISIONES PENDIENTES
+        cursor.execute("""
+            SELECT * FROM DOCTOS_VE 
+            WHERE CLIENTE_ID = ? AND TIPO_DOCTO = 'R' AND ESTATUS = 'P'
+        """, (cliente_id,))
+        remisiones = cursor.fetchall()
+        columnas_rem = [desc[0] for desc in cursor.description]
+        df_remisiones = pd.DataFrame(remisiones, columns=columnas_rem)
+
+        # Asegurar columnas clave, incluso si faltan o están vacías
+        for col in ["MONEDA_ID", "DOCUMENTO"]:
+            if col not in df_saldos.columns:
+                df_saldos[col] = None
+            if col not in df_remisiones.columns:
+                df_remisiones[col] = None
+
+        if df_saldos.empty:
+            df_saldos = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "SALDO"])
+
+        if df_remisiones.empty:
+            df_remisiones = pd.DataFrame(columns=["MONEDA_ID", "DOCUMENTO", "IMPORTE"])
+
+        return df_saldos, df_remisiones
+
+    finally:
+        cursor.close()
+
