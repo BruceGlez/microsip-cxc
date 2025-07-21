@@ -1,22 +1,41 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
+import shutil
 import time
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from gui.main_window import MainWindow
 from singleton import verificar_instancia_unica
 from updater import verificar_actualizacion, VERSION_LOCAL
 
-def log_actualizacion(msg):
-    from datetime import datetime
-    with open("actualizacion.log", "a", encoding="utf-8") as f:
-        f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+def aplicar_actualizacion_si_pendiente():
+    exe_path = os.path.abspath(sys.argv[0])
+    exe_dir = os.path.dirname(exe_path)
+    nuevo_exe = os.path.join(exe_dir, "MicrosipTool_new.exe")
+
+    if os.path.exists(nuevo_exe):
+        try:
+            backup = exe_path + ".bak"
+            os.rename(exe_path, backup)
+            shutil.move(nuevo_exe, exe_path)
+            os.execv(exe_path, sys.argv)
+        except Exception as e:
+            print(f"Error aplicando actualización: {e}")
+            QMessageBox.critical(None, "Error", f"No se pudo aplicar la actualización:\n{e}")
+    else:
+        # Optional: try to clean old backup if it exists
+        try:
+            os.remove(exe_path + ".bak")
+        except Exception:
+            pass
+
+aplicar_actualizacion_si_pendiente()
 
 if __name__ == "__main__":
     time.sleep(2)
 
     instancia = verificar_instancia_unica()
     if not instancia:
-        log_actualizacion("Instancia bloqueada. Ya hay una en ejecución.")
         QMessageBox.critical(None, "Ya está en ejecución", "La aplicación ya está corriendo.")
         sys.exit(1)
 
@@ -26,19 +45,9 @@ if __name__ == "__main__":
     try:
         verificar_actualizacion(parent=window)
     except Exception as e:
-        log_actualizacion(f"Error al verificar actualización: {e}")
-
-    if os.path.exists("actualizado.txt"):
-        log_actualizacion("Se detecto actualizado.txt")
-        QMessageBox.information(None, "Actualización completada",
-                                f"La aplicación se ha actualizado correctamente a la versión {VERSION_LOCAL}.")
-        try:
-            os.remove("actualizado.txt")
-        except Exception as e:
-            log_actualizacion(f"No se pudo borrar actualizado.txt: {e}")
+        print(f"Error al verificar actualización: {e}")
+        QMessageBox.warning(None, "Actualización", f"Error al verificar actualización:\n{e}")
 
     window.show()
     app.exec_()
-
     instancia.release()
-    log_actualizacion("Aplicación cerrada correctamente.")
