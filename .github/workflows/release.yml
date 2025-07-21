@@ -3,52 +3,50 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: Install dependencies
-      run: pip install pyinstaller
-
-    - name: Build Executable
-      run: pyinstaller main.py --onefile
-
-    - name: Rename built binary to MicrosipTool.exe
-      run: mv dist/main dist/MicrosipTool.exe
-
-    - name: Generate version.json
-      run: python generate_version_json.py ${{ github.ref_name }}
-
-    - name: Release
-      uses: softprops/action-gh-release@v2
-      with:
-        token: ${{ secrets.GH_PAT }}
-
-
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-        files: |
-          dist/MicrosipTool.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          python-version: 3.10
 
-    - name: Publish version.json to gh-pages
-      run: |
-        git config --global user.name "${{ github.actor }}"
-        git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-        git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }} gh-pages
-        cp version.json gh-pages/
-        cd gh-pages
-        git add version.json
-        git commit -m "Update version.json for ${{ github.ref_name }}"
-        git push
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        run: pyinstaller main.py --onefile --distpath dist
+
+      - name: Rename executable
+        run: mv dist/main dist/MicrosipTool.exe
+
+      - name: Generate version.json
+        run: python generate_version_json.py ${{ github.ref_name }}
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/MicrosipTool.exe
+            version.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Upload version.json to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          keep_files: true
+          destination_dir: .
