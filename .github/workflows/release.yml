@@ -30,9 +30,13 @@ jobs:
     - name: Generate version.json
       run: python generate_version_json.py ${{ github.ref_name }}
 
-    - name: Upload to Release
+    - name: Release
       uses: softprops/action-gh-release@v2
       with:
+        token: ${{ secrets.GH_PAT }}
+
+
+        with:
         files: |
           dist/MicrosipTool.exe
       env:
