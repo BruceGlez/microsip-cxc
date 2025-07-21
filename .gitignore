@@ -9,6 +9,8 @@ dist/
 build/
 *.spec
 Output/
+*.exe
+*.pyc
 
 # Virtual environments
 .venv/
@@ -19,6 +21,8 @@ venv/
 # PyCharm
 .idea/
 .idea/workspace.xml
+.idea/MicrosipCxC.iml
+.idea/misc.xml
 
 # Sistema
 .DS_Store
