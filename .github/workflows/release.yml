@@ -22,7 +22,7 @@ jobs:
       run: pip install pyinstaller
 
     - name: Build Executable
-      run: pyinstaller MicrosipTool.py --onefile
+      run: pyinstaller main.py --onefile
 
     - name: Generate version.json
       run: python generate_version_json.py ${{ github.ref_name }}
