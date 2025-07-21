@@ -1,0 +1,34 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# PyInstaller
+dist/
+build/
+*.spec
+Output/
+*.exe
+*.pyc
+
+# Virtual environments
+.venv/
+env/
+ENV/
+venv/
+
+# PyCharm
+.idea/
+.idea/workspace.xml
+.idea/MicrosipCxC.iml
+.idea/misc.xml
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Otros
+*.log
+*.bak
+*.tmp
