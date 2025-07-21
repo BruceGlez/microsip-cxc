@@ -24,6 +24,9 @@ jobs:
     - name: Build Executable
       run: pyinstaller main.py --onefile
 
+    - name: Rename built exe to MicrosipTool.exe
+      run: mv dist/main.exe dist/MicrosipTool.exe
+
     - name: Generate version.json
       run: python generate_version_json.py ${{ github.ref_name }}
 
