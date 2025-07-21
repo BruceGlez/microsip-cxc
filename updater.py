@@ -1,90 +1,62 @@
-import requests
 import os
 import sys
-import tempfile
-import subprocess
+import requests
 import shutil
+import hashlib
 from packaging import version
-from PyQt5.QtWidgets import QMessageBox, QProgressDialog, QApplication
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMessageBox
 
-VERSION_LOCAL = "1.2.0"
-VERSION_URL = "https://BruceGlez.github.io/microsip-actualizador/version.json"
+VERSION_LOCAL = "1.0.0"
+URL_VERSION_JSON = "https://bruceglez.github.io/microsip-actualizador/version.json"
 
-def verificar_actualizacion(parent=None):
-    print(">>> Verificando versión remota...")
+def get_download_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.abspath(os.path.dirname(__file__))
+
+def calcular_sha256(filepath):
+    sha256 = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+def actualizar_aplicacion(download_url, expected_hash):
+    destino_exe = os.path.join(get_download_path(), "MicrosipTool_new.exe")
 
     try:
-        response = requests.get(VERSION_URL, timeout=5)
-        print(">>> Status:", response.status_code)
-        print(">>> Texto JSON:", response.text)
+        response = requests.get(download_url, stream=True)
+        response.raise_for_status()
 
+        with open(destino_exe, "wb") as f:
+            shutil.copyfileobj(response.raw, f)
+
+        hash_descargado = calcular_sha256(destino_exe)
+        if hash_descargado != expected_hash:
+            QMessageBox.critical(None, "Error de Integridad",
+                                 "El archivo descargado no coincide con el hash esperado.\nActualización cancelada.")
+            os.remove(destino_exe)
+            return
+
+        QMessageBox.information(None, "Actualización",
+                                "La actualización se descargó y verificó con éxito.\nSe aplicará la próxima vez que abras la aplicación.")
+    except Exception as e:
+        print(f"Error downloading update: {e}")
+        QMessageBox.critical(None, "Error de Actualización", f"No se pudo descargar la actualización:\n{e}")
+
+def verificar_actualizacion(parent=None):
+    try:
+        response = requests.get(URL_VERSION_JSON)
+        response.raise_for_status()
         data = response.json()
-        nueva_version = data["version"]
-        url_exe = data["url"]
 
-        print(">>> Versión local:", VERSION_LOCAL)
-        print(">>> Versión remota:", nueva_version)
-        print(">>> URL del ejecutable:", url_exe)
+        version_remota = data.get("version")
+        url_remoto = data.get("url")
+        hash_remoto = data.get("sha256")
 
-        if version.parse(nueva_version) > version.parse(VERSION_LOCAL):
-            reply = QMessageBox.question(parent, "Actualización disponible",
-                                         f"Versión {nueva_version} disponible. ¿Deseas actualizar?",
-                                         QMessageBox.Yes | QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                temp_dir = tempfile.mkdtemp()
-                nuevo_exe = os.path.join(temp_dir, "nuevo.exe")
-
-                head = requests.head(url_exe)
-                total_size = int(head.headers.get("Content-Length", 0))
-
-                progress = QProgressDialog("Descargando actualización...", "Cancelar", 0, total_size, parent)
-                progress.setWindowModality(Qt.WindowModal)
-                progress.setMinimumDuration(0)
-                progress.setValue(0)
-                progress.show()
-
-                QApplication.processEvents()
-
-                try:
-                    with requests.get(url_exe, stream=True) as r, open(nuevo_exe, "wb") as f:
-                        descargado = 0
-                        for chunk in r.iter_content(chunk_size=8192):
-                            if chunk:
-                                f.write(chunk)
-                                descargado += len(chunk)
-                                progress.setValue(descargado)
-                                QApplication.processEvents()
-                                if progress.wasCanceled():
-                                    return
-
-                    progress.close()
-                    QMessageBox.information(parent, "Descarga completa", "Se actualizará el programa.")
-
-                    # Script para reemplazar y ejecutar
-                    current_exe = sys.argv[0]
-                    updater_script = os.path.join(temp_dir, "update_and_run.bat")
-
-                    with open(updater_script, "w") as f:
-                        f.write(f"""@echo off
-                    timeout /t 2 >nul
-                    echo Actualizando... >> actualizacion.log
-                    copy /Y "{nuevo_exe}" "{current_exe}" >nul
-                    echo ok > actualizado.txt
-                    start "" "{current_exe}"
-                    del "%~f0"
-                    """)
-
-                    subprocess.Popen(f'start cmd /c "{updater_script}"', shell=True)
-                    sys.exit()
-
-                except Exception as e:
-                    progress.close()
-                    QMessageBox.critical(parent, "Error", f"No se pudo descargar la actualización:\n{e}")
-
-        else:
-            print(">>> Ya tienes la versión más reciente.")
+        if version_remota and url_remoto and hash_remoto:
+            if version.parse(version_remota) > version.parse(VERSION_LOCAL):
+                actualizar_aplicacion(url_remoto, hash_remoto)
 
     except Exception as e:
-        print(">>> Error en la actualización:", e)
-
+        print(f"Error al verificar actualización: {e}")
