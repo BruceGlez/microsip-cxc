@@ -6,7 +6,6 @@ import time
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from gui.main_window import MainWindow
 from singleton import verificar_instancia_unica
-from updater import verificar_actualizacion, VERSION_LOCAL
 
 def aplicar_actualizacion_si_pendiente():
     exe_path = os.path.abspath(sys.argv[0])
@@ -23,7 +22,6 @@ def aplicar_actualizacion_si_pendiente():
             print(f"Error aplicando actualización: {e}")
             QMessageBox.critical(None, "Error", f"No se pudo aplicar la actualización:\n{e}")
     else:
-        # Optional: try to clean old backup if it exists
         try:
             os.remove(exe_path + ".bak")
         except Exception:
@@ -41,13 +39,6 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     window = MainWindow()
-
-    try:
-        verificar_actualizacion(parent=window)
-    except Exception as e:
-        print(f"Error al verificar actualización: {e}")
-        QMessageBox.warning(None, "Actualización", f"Error al verificar actualización:\n{e}")
-
     window.show()
     app.exec_()
     instancia.release()
