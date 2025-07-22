@@ -14,3 +14,7 @@ def exportar_reporte_handler(ventana):
             QMessageBox.information(ventana, "Éxito", "Reporte exportado correctamente.")
         else:
             QMessageBox.critical(ventana, "Error", error)
+
+    if ventana.df_resumen.empty:
+        QMessageBox.information(ventana, "Sin datos", "No hay datos para exportar.")
+        return

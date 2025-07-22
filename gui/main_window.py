@@ -1,17 +1,21 @@
+import sys
+import json
 import pandas as pd
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction
 
 from gui.ui_elements import construir_ui
 from gui.handlers.consulta_handler import manejar_consulta_saldos
 from gui.handlers.resumen_handler import (
     generar_resumen_simplificado_handler,
     generar_resumen_agrupado_handler,
+    mostrar_detalle_cliente_por_moneda,
 )
 from gui.handlers.export_handler import exportar_reporte_handler
 from gui.utils.table_formatter import mostrar_dataframe_en_tabla
 from consultas.consulta_fecha_adeudos import obtener_adeudos_por_fecha
 from conexion.conexion_firebird import conectar_firebird
-from gui.handlers.resumen_handler import mostrar_detalle_cliente_por_moneda
+from gui.components.dialogs.configuracion_conexion_dialog import ConfiguracionConexionDialog
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -19,23 +23,47 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Monitoreo de crédito - Microsip")
         self.setGeometry(100, 100, 1000, 600)
 
+        # 🚀 Solicitar configuración de conexión al inicio
+        self.db_config = self.solicitar_configuracion_conexion()
+        if self.db_config is None:
+            QMessageBox.critical(self, "Sin conexión", "No se proporcionaron datos de conexión.")
+            sys.exit(1)
+
         self.df_resultado = pd.DataFrame()
         self.df_resumen = pd.DataFrame()
+        self._cliente_ids_mapa = {}  # 🔧 Inicializar para evitar errores
 
-        # Construye la interfaz y asigna widgets a la instancia
+        # Construir UI
         construir_ui(self)
+
+        # Menú de configuración para cambiar conexión
+        config_menu = self.menuBar().addMenu("Configuración")
+        conexion_action = QAction("Cambiar conexión", self)
+        conexion_action.triggered.connect(self.abrir_dialogo_conexion)
+        config_menu.addAction(conexion_action)
 
         # Conectar eventos
         self.btn_consultar.clicked.connect(lambda: manejar_consulta_saldos(self))
         self.resumen_action.triggered.connect(lambda: generar_resumen_simplificado_handler(self))
-        #self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
+        # self.agrupado_action.triggered.connect(lambda: generar_resumen_agrupado_handler(self))
         self.btn_exportar.clicked.connect(lambda: exportar_reporte_handler(self))
-        #self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
+        # self.adeudos_fecha_action.triggered.connect(self.mostrar_reporte_adeudos_fecha)
         self.table.cellDoubleClicked.connect(self.on_doble_click_resumen)
+
+    def solicitar_configuracion_conexion(self):
+        dialog = ConfiguracionConexionDialog(self)
+        if dialog.exec_() == dialog.Accepted:
+            return dialog.config
+        return None
+
+    def abrir_dialogo_conexion(self):
+        nueva_config = self.solicitar_configuracion_conexion()
+        if nueva_config:
+            self.db_config = nueva_config
 
     def mostrar_dataframe(self, df):
         """
-        Método auxiliar que delega el renderizado del DataFrame a la tabla.
+        Muestra un DataFrame en la tabla principal.
         """
         mostrar_dataframe_en_tabla(self, df)
 
@@ -49,7 +77,7 @@ class MainWindow(QMainWindow):
         fecha_inicio, fecha_fin = dialogo.obtener_fechas()
 
         try:
-            conn = conectar_firebird()
+            conn = conectar_firebird(self.db_config)
             datos, columnas = obtener_adeudos_por_fecha(conn, fecha_inicio, fecha_fin)
             conn.close()
 
@@ -70,7 +98,6 @@ class MainWindow(QMainWindow):
 
         df = self.df_resumen
         cliente_base = df.iloc[row]["CLIENTE_BASE"]
-        cliente_base = df.iloc[row]["CLIENTE_BASE"]
         cliente_ids_raw = self._cliente_ids_mapa.get(cliente_base, "{}")
 
         # Obtener moneda seleccionada
@@ -82,7 +109,6 @@ class MainWindow(QMainWindow):
             return
 
         # Parsear CLIENTE_ID correcto según la moneda
-        import json
         try:
             cliente_ids_dict = json.loads(cliente_ids_raw)
             cliente_id = cliente_ids_dict.get(str(moneda_id))
