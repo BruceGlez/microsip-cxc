@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import subprocess
 import time
@@ -14,15 +15,21 @@ VERSION_FILE = "version.json"
 REMOTE_VERSION_URL = "https://raw.githubusercontent.com/BruceGlez/microsip-cxc/master/version.json"
 ICON_PATH = "icon.ico"
 
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
 def get_local_version():
     try:
-        if os.path.exists(VERSION_FILE):
-            with open(VERSION_FILE, "r") as f:
-                data = json.load(f)
-                return data.get("version", "unknown")
+        path = os.path.join(get_base_path(), VERSION_FILE)
+        if not os.path.exists(path):
+            return f"❌ No se encontró {VERSION_FILE}"
+        with open(path, "r") as f:
+            data = json.load(f)
+            return data.get("version", "unknown")
     except Exception as e:
-        print("❌ Error reading local version:", e)
-    return "unknown"
+        return f"❌ {e}"
 
 def get_remote_version():
     try:
@@ -31,10 +38,9 @@ def get_remote_version():
             data = response.json()
             return data.get("version", "unknown")
         else:
-            print(f"❌ Remote fetch failed: HTTP {response.status_code}")
+            return f"❌ HTTP {response.status_code}"
     except Exception as e:
-        print("❌ Error fetching remote version:", e)
-    return "unknown"
+        return f"❌ {e}"
 
 def aplicar_actualizacion_si_pendiente(update_gui=None):
     if os.path.exists(NEW_EXE):
@@ -62,9 +68,12 @@ def launch_logic(gui_ref):
     gui_ref.set_status(f"🌐 Versión remota: {remote_ver}")
     time.sleep(1)
 
-    if local_ver != remote_ver or os.path.exists(NEW_EXE):
+    if local_ver != remote_ver:
         aplicar_actualizacion_si_pendiente(update_gui=gui_ref.set_status)
         time.sleep(1)
+    elif os.path.exists(NEW_EXE):
+        # Optional: clean up unused new version file
+        os.remove(NEW_EXE)
 
     gui_ref.set_status("🚀 Iniciando aplicación...")
     time.sleep(1)
